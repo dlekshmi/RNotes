@@ -5,8 +5,15 @@ date: 17-07-2020
 
 # Trying some ODE solvers in R
 ```{r,warning=F}
-require(fpp)
-require(checkpoint)
+if (!require("checkpoint", character.only = TRUE)) {
+  install.packages("checkpoint", dependencies = TRUE)
+  library(checkpoint)
+}
+
+if (!require("fpp", character.only = TRUE)) {
+  install.packages("fpp", dependencies = TRUE)
+  library(fpp)
+}
 
 dir.create(".checkpoint")
 checkpoint('2020-07-17',checkpointLocation=getwd())
