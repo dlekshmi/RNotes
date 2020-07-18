@@ -5,7 +5,21 @@ date: 17-07-2020
 
 # Trying some ODE solvers in R
 ```{r,warning=F}
-source('./setup.R')
+require(fpp)
+require(checkpoint)
+
+dir.create(".checkpoint")
+checkpoint('2020-07-17',checkpointLocation=getwd())
+
+
+# Packages
+library(tidyverse)
+library(JuliaCall)
+library(diffeqr)
+library(odeintr)
+library(sundialr)
+library(knitr)
+library(bookdown)
 ```
 The last time I had exclusively programmed in R, it was 2014. At that point, I decided to make a shift from R to MATLAB partly because it was the tool that was used in our lab for solving ODEs and numerical analysis and secondly, R had options I was not very interested to use. Now that I have all this new found time after my pandemic defense, what better way to re-educate, and recalibrate myself and check in at what the R world is upto. 
 
