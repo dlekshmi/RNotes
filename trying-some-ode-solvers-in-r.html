@@ -153,170 +153,135 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="trying-some-ode-solvers-in-r" class="section level1">
 <h1><span class="header-section-number">2</span> Trying some ODE solvers in R</h1>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">require</span>(fpp)</a></code></pre></div>
-<pre><code>## Loading required package: fpp</code></pre>
-<pre><code>## Loading required package: forecast</code></pre>
-<pre><code>## Registered S3 method overwritten by &#39;quantmod&#39;:
-##   method            from
-##   as.zoo.data.frame zoo</code></pre>
-<pre><code>## Loading required package: fma</code></pre>
-<pre><code>## Loading required package: expsmooth</code></pre>
-<pre><code>## Loading required package: lmtest</code></pre>
-<pre><code>## Loading required package: zoo</code></pre>
-<pre><code>## 
-## Attaching package: &#39;zoo&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     as.Date, as.Date.numeric</code></pre>
-<pre><code>## Loading required package: tseries</code></pre>
-<pre><code>## 
-##     &#39;tseries&#39; version: 0.10-47
-## 
-##     &#39;tseries&#39; is a package for time series analysis and
-##     computational finance.
-## 
-##     See &#39;library(help=&quot;tseries&quot;)&#39; for details.</code></pre>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="kw">require</span>(checkpoint)</a>
-<a class="sourceLine" id="cb13-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb13-3" data-line-number="3"><span class="kw">dir.create</span>(<span class="st">&quot;.checkpoint&quot;</span>)</a>
-<a class="sourceLine" id="cb13-4" data-line-number="4"><span class="kw">checkpoint</span>(<span class="st">&#39;2020-07-17&#39;</span>,<span class="dt">checkpointLocation=</span><span class="kw">getwd</span>())</a></code></pre></div>
 <pre><code>## Using checkpoint directory /Users/dlekshmi/.checkpoint/2020-07-17/lib/x86_64-apple-darwin15.6.0/3.6.0</code></pre>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1"><span class="co"># Packages</span></a>
-<a class="sourceLine" id="cb15-2" data-line-number="2"><span class="kw">library</span>(tidyverse)</a>
-<a class="sourceLine" id="cb15-3" data-line-number="3"><span class="kw">library</span>(JuliaCall)</a>
-<a class="sourceLine" id="cb15-4" data-line-number="4"><span class="kw">library</span>(diffeqr)</a>
-<a class="sourceLine" id="cb15-5" data-line-number="5"><span class="kw">library</span>(odeintr)</a>
-<a class="sourceLine" id="cb15-6" data-line-number="6"><span class="kw">library</span>(sundialr)</a>
-<a class="sourceLine" id="cb15-7" data-line-number="7"><span class="kw">library</span>(knitr)</a>
-<a class="sourceLine" id="cb15-8" data-line-number="8"><span class="kw">library</span>(bookdown)</a></code></pre></div>
 <p>The last time I had exclusively programmed in R, it was 2014. At that point, I decided to make a shift from R to MATLAB partly because it was the tool that was used in our lab for solving ODEs and numerical analysis and secondly, R had options I was not very interested to use. Now that I have all this new found time after my pandemic defense, what better way to re-educate, and recalibrate myself and check in at what the R world is upto.</p>
 <p>So promptly I visited the <a href="https://cran.r-project.org/web/views/DifferentialEquations.html">CRAN website</a> and picked out the ones I found interesting to try out. Also see the <a href="https://www.stochasticlifestyle.com/comparison-differential-equation-solver-suites-matlab-r-julia-python-c-fortran/">nice blog</a> comparing different solvers across different languages. As I usually work with ODEs, I checked out a standard non-linear ODE function that I wanted to integrate i.e. the Lokta-Volterra system. I also decided to not use the odeSolve package as I found the others more appealing in terms of model definition and what they interface with.</p>
 <div id="diffeqr-package" class="section level2">
 <h2><span class="header-section-number">2.1</span> diffeqr package</h2>
 <p>What appealed to me is that this package interfaces with the <a href="https://github.com/SciML/DifferentialEquations.jl">DifferentialEquations.jl</a> in Julia which includes solvers for DDE, ODEs, SDEs, PDEs and many more. Moreover, in comparison to other tools, the julia package has appealing features, of which I would like to highlight event-handling, good efficiency and symbolic calculation of jacobians and autodifferentiation. Also note, that this gives us access to all the <a href="https://docs.sciml.ai/stable/solvers/ode_solve/">solvers in Julia</a> Therefore, an R package that interfaces to the julia package intrgigued me.</p>
 <p>We begin by setting up the julia interface to R by calling <code>julia_setup</code> function in <a href="https://cran.r-project.org/web/packages/JuliaCall/index.html">JuliaCall</a> package. Note that this takes some (considerable) time to run when doing it the first time.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="co"># The set up takes time, (a LOT of time when doing the first stime.)</span></a>
-<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="kw">julia_setup</span>(<span class="dt">JULIA_HOME=</span><span class="st">&quot;/Applications/Julia-1.2.app/Contents/Resources/julia/bin&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="co"># The set up takes time, (a LOT of time when doing the first stime.)</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw">julia_setup</span>(<span class="dt">JULIA_HOME=</span><span class="st">&quot;/Applications/Julia-1.2.app/Contents/Resources/julia/bin&quot;</span>)</a></code></pre></div>
 <p>Then, we setup the <code>diffeqr</code> package:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1">diffeqr<span class="op">::</span><span class="kw">diffeq_setup</span>()</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">diffeqr<span class="op">::</span><span class="kw">diffeq_setup</span>()</a></code></pre></div>
 <p>We begin by defining our ODE system to be evaluated with Julia as ‘f’ and define the initial conditionas and the time span we will integrate the system over.</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1">f &lt;-<span class="st"> </span>JuliaCall<span class="op">::</span><span class="kw">julia_eval</span>(<span class="st">&quot;</span></a>
-<a class="sourceLine" id="cb18-2" data-line-number="2"><span class="st">function f(du,u,p,t)</span></a>
-<a class="sourceLine" id="cb18-3" data-line-number="3"><span class="st">  du[1] = 10.0*(u[2]-u[1])</span></a>
-<a class="sourceLine" id="cb18-4" data-line-number="4"><span class="st">  du[2] = u[1]*(28.0-u[3]) - u[2]</span></a>
-<a class="sourceLine" id="cb18-5" data-line-number="5"><span class="st">  du[3] = u[1]*u[2] - (8/3)*u[3]</span></a>
-<a class="sourceLine" id="cb18-6" data-line-number="6"><span class="st">end&quot;</span>)</a>
-<a class="sourceLine" id="cb18-7" data-line-number="7"></a>
-<a class="sourceLine" id="cb18-8" data-line-number="8">u0 =<span class="st"> </span><span class="kw">c</span>(<span class="fl">1.0</span>,<span class="fl">0.0</span>,<span class="fl">0.0</span>)</a>
-<a class="sourceLine" id="cb18-9" data-line-number="9">tspan &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="fl">0.0</span>,<span class="fl">100.0</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">f &lt;-<span class="st"> </span>JuliaCall<span class="op">::</span><span class="kw">julia_eval</span>(<span class="st">&quot;</span></a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="st">function f(du,u,p,t)</span></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="st">  du[1] = 10.0*(u[2]-u[1])</span></a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="st">  du[2] = u[1]*(28.0-u[3]) - u[2]</span></a>
+<a class="sourceLine" id="cb4-5" data-line-number="5"><span class="st">  du[3] = u[1]*u[2] - (8/3)*u[3]</span></a>
+<a class="sourceLine" id="cb4-6" data-line-number="6"><span class="st">end&quot;</span>)</a>
+<a class="sourceLine" id="cb4-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb4-8" data-line-number="8">u0 =<span class="st"> </span><span class="kw">c</span>(<span class="fl">1.0</span>,<span class="fl">0.0</span>,<span class="fl">0.0</span>)</a>
+<a class="sourceLine" id="cb4-9" data-line-number="9">tspan &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="fl">0.0</span>,<span class="fl">100.0</span>)</a></code></pre></div>
 <p>We then solve the ODE. Note that the first time we called the model it also compiles, therefore I store only the second time taken in the second time we solve it.</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">2</span>){</a>
-<a class="sourceLine" id="cb19-2" data-line-number="2">t_diffeqr&lt;-<span class="kw">system.time</span>(</a>
-<a class="sourceLine" id="cb19-3" data-line-number="3">  {sol =<span class="st"> </span>diffeqr<span class="op">::</span><span class="kw">ode.solve</span>(<span class="st">&#39;f&#39;</span>,u0,tspan,<span class="dt">reltol=</span><span class="fl">1e-4</span>,<span class="dt">abstol=</span><span class="fl">1e-4</span>)}</a>
-<a class="sourceLine" id="cb19-4" data-line-number="4">  )</a>
-<a class="sourceLine" id="cb19-5" data-line-number="5">}</a>
-<a class="sourceLine" id="cb19-6" data-line-number="6"><span class="kw">colnames</span>(sol<span class="op">$</span>u)&lt;-<span class="kw">c</span>(<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</a>
-<a class="sourceLine" id="cb19-7" data-line-number="7">sol_df=sol<span class="op">$</span>u<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb19-8" data-line-number="8"><span class="st">      </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb19-9" data-line-number="9"><span class="st">      </span><span class="kw">mutate</span>(<span class="dt">time=</span>sol<span class="op">$</span>t)</a>
-<a class="sourceLine" id="cb19-10" data-line-number="10"></a>
-<a class="sourceLine" id="cb19-11" data-line-number="11">sol_diffeqr_melted=sol_df<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb19-12" data-line-number="12"><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb19-13" data-line-number="13"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;diffeqr&#39;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">2</span>){</a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">t_diffeqr&lt;-<span class="kw">system.time</span>(</a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">  {sol =<span class="st"> </span>diffeqr<span class="op">::</span><span class="kw">ode.solve</span>(<span class="st">&#39;f&#39;</span>,u0,tspan,<span class="dt">reltol=</span><span class="fl">1e-4</span>,<span class="dt">abstol=</span><span class="fl">1e-4</span>)}</a>
+<a class="sourceLine" id="cb5-4" data-line-number="4">  )</a>
+<a class="sourceLine" id="cb5-5" data-line-number="5">}</a>
+<a class="sourceLine" id="cb5-6" data-line-number="6"><span class="kw">colnames</span>(sol<span class="op">$</span>u)&lt;-<span class="kw">c</span>(<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</a>
+<a class="sourceLine" id="cb5-7" data-line-number="7">sol_df=sol<span class="op">$</span>u<span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb5-8" data-line-number="8"><span class="st">      </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb5-9" data-line-number="9"><span class="st">      </span><span class="kw">mutate</span>(<span class="dt">time=</span>sol<span class="op">$</span>t)</a>
+<a class="sourceLine" id="cb5-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb5-11" data-line-number="11">sol_diffeqr_melted=sol_df<span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb5-12" data-line-number="12"><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb5-13" data-line-number="13"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;diffeqr&#39;</span>)</a></code></pre></div>
 </div>
 <div id="odeintr-package" class="section level2">
 <h2><span class="header-section-number">2.2</span> odeintr package</h2>
 <p>The odeintr package uses the integration engine from <a href="https://headmyshoulder.github.io/odeint-v2/">Boost</a> and therefore compiles the model in C++. We specify the model in C, compile and integrate it. The nice part it this package allows you to use all the steppers in <code>Boost</code>. I liked the intuitive/ clean way of defining the models and running it.</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1">f_c &lt;-<span class="st"> &#39;</span></a>
-<a class="sourceLine" id="cb20-2" data-line-number="2"><span class="st">  dxdt[0] = 10.0*(x[1]-x[0]);</span></a>
-<a class="sourceLine" id="cb20-3" data-line-number="3"><span class="st">  dxdt[1] = x[0]*(28.0-x[2]) - x[1];</span></a>
-<a class="sourceLine" id="cb20-4" data-line-number="4"><span class="st">  dxdt[2] = x[0]*x[1] - (8/3)*x[2];</span></a>
-<a class="sourceLine" id="cb20-5" data-line-number="5"><span class="st">&#39;</span></a>
-<a class="sourceLine" id="cb20-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb20-7" data-line-number="7"><span class="co"># compile model, and pass integration options</span></a>
-<a class="sourceLine" id="cb20-8" data-line-number="8"><span class="kw">compile_sys</span>(<span class="st">&quot;lorenz&quot;</span>, f_c,<span class="dt">atol =</span> <span class="fl">1e-04</span>, <span class="dt">rtol =</span> <span class="fl">1e-04</span>)</a>
-<a class="sourceLine" id="cb20-9" data-line-number="9"></a>
-<a class="sourceLine" id="cb20-10" data-line-number="10"><span class="co"># Run model</span></a>
-<a class="sourceLine" id="cb20-11" data-line-number="11">t_odeintr=<span class="kw">system.time</span>({sol_odeintr =<span class="st"> </span><span class="kw">lorenz</span>(u0, <span class="dv">100</span>, <span class="fl">0.001</span>)})</a>
-<a class="sourceLine" id="cb20-12" data-line-number="12"></a>
-<a class="sourceLine" id="cb20-13" data-line-number="13"><span class="co"># Results</span></a>
-<a class="sourceLine" id="cb20-14" data-line-number="14"><span class="kw">colnames</span>(sol_odeintr)&lt;-<span class="kw">c</span>(<span class="st">&#39;time&#39;</span>,<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</a>
-<a class="sourceLine" id="cb20-15" data-line-number="15">sol_odeintr_melted&lt;-sol_odeintr<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb20-16" data-line-number="16"><span class="st">  </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb20-17" data-line-number="17"><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb20-18" data-line-number="18"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;odeintr&#39;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">f_c &lt;-<span class="st"> &#39;</span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="st">  dxdt[0] = 10.0*(x[1]-x[0]);</span></a>
+<a class="sourceLine" id="cb6-3" data-line-number="3"><span class="st">  dxdt[1] = x[0]*(28.0-x[2]) - x[1];</span></a>
+<a class="sourceLine" id="cb6-4" data-line-number="4"><span class="st">  dxdt[2] = x[0]*x[1] - (8/3)*x[2];</span></a>
+<a class="sourceLine" id="cb6-5" data-line-number="5"><span class="st">&#39;</span></a>
+<a class="sourceLine" id="cb6-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb6-7" data-line-number="7"><span class="co"># compile model, and pass integration options</span></a>
+<a class="sourceLine" id="cb6-8" data-line-number="8"><span class="kw">compile_sys</span>(<span class="st">&quot;lorenz&quot;</span>, f_c,<span class="dt">atol =</span> <span class="fl">1e-04</span>, <span class="dt">rtol =</span> <span class="fl">1e-04</span>)</a>
+<a class="sourceLine" id="cb6-9" data-line-number="9"></a>
+<a class="sourceLine" id="cb6-10" data-line-number="10"><span class="co"># Run model</span></a>
+<a class="sourceLine" id="cb6-11" data-line-number="11">t_odeintr=<span class="kw">system.time</span>({sol_odeintr =<span class="st"> </span><span class="kw">lorenz</span>(u0, <span class="dv">100</span>, <span class="fl">0.001</span>)})</a>
+<a class="sourceLine" id="cb6-12" data-line-number="12"></a>
+<a class="sourceLine" id="cb6-13" data-line-number="13"><span class="co"># Results</span></a>
+<a class="sourceLine" id="cb6-14" data-line-number="14"><span class="kw">colnames</span>(sol_odeintr)&lt;-<span class="kw">c</span>(<span class="st">&#39;time&#39;</span>,<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</a>
+<a class="sourceLine" id="cb6-15" data-line-number="15">sol_odeintr_melted&lt;-sol_odeintr<span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-16" data-line-number="16"><span class="st">  </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-17" data-line-number="17"><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-18" data-line-number="18"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;odeintr&#39;</span>)</a></code></pre></div>
 </div>
 <div id="sundialr-package" class="section level2">
 <h2><span class="header-section-number">2.3</span> sundialr package</h2>
 <p>Finally, the <a href="https://cran.r-project.org/web/packages/sundialr/index.html">subdialr</a> package that interfaces with CVODE/CVODES (something I am more familiar with). I define a model in R and run it:</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1">f_sundials&lt;-<span class="st"> </span><span class="cf">function</span>(t,u,p){</a>
-<a class="sourceLine" id="cb21-2" data-line-number="2">  du &lt;-<span class="st"> </span><span class="kw">vector</span>(<span class="dt">mode =</span> <span class="st">&quot;numeric&quot;</span>, <span class="dt">length =</span> <span class="kw">length</span>(u))</a>
-<a class="sourceLine" id="cb21-3" data-line-number="3">  </a>
-<a class="sourceLine" id="cb21-4" data-line-number="4">  du[<span class="dv">1</span>] =<span class="st"> </span><span class="fl">10.0</span><span class="op">*</span>(u[<span class="dv">2</span>]<span class="op">-</span>u[<span class="dv">1</span>])</a>
-<a class="sourceLine" id="cb21-5" data-line-number="5">  du[<span class="dv">2</span>] =<span class="st"> </span>u[<span class="dv">1</span>]<span class="op">*</span>(<span class="fl">28.0</span><span class="op">-</span>u[<span class="dv">3</span>]) <span class="op">-</span><span class="st"> </span>u[<span class="dv">2</span>]</a>
-<a class="sourceLine" id="cb21-6" data-line-number="6">  du[<span class="dv">3</span>] =<span class="st"> </span>u[<span class="dv">1</span>]<span class="op">*</span>u[<span class="dv">2</span>] <span class="op">-</span><span class="st"> </span>(<span class="dv">8</span><span class="op">/</span><span class="dv">3</span>)<span class="op">*</span>u[<span class="dv">3</span>]</a>
-<a class="sourceLine" id="cb21-7" data-line-number="7">  </a>
-<a class="sourceLine" id="cb21-8" data-line-number="8">  du</a>
-<a class="sourceLine" id="cb21-9" data-line-number="9">}</a>
-<a class="sourceLine" id="cb21-10" data-line-number="10"></a>
-<a class="sourceLine" id="cb21-11" data-line-number="11"><span class="co"># run</span></a>
-<a class="sourceLine" id="cb21-12" data-line-number="12">t_cvode=<span class="kw">system.time</span>({</a>
-<a class="sourceLine" id="cb21-13" data-line-number="13">sol_cvode&lt;-<span class="st"> </span><span class="kw">cvode</span>(<span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">100</span>,<span class="fl">0.2</span>), u0<span class="fl">+1e-10</span>, f_sundials,<span class="dv">0</span>,<span class="dt">reltolerance =</span> <span class="fl">1e-4</span>,<span class="dt">abstolerance =</span> <span class="fl">1e-4</span>)</a>
-<a class="sourceLine" id="cb21-14" data-line-number="14">})</a>
-<a class="sourceLine" id="cb21-15" data-line-number="15"></a>
-<a class="sourceLine" id="cb21-16" data-line-number="16"><span class="co"># </span></a>
-<a class="sourceLine" id="cb21-17" data-line-number="17"><span class="kw">colnames</span>(sol_cvode)&lt;-<span class="kw">c</span>(<span class="st">&#39;time&#39;</span>,<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</a>
-<a class="sourceLine" id="cb21-18" data-line-number="18">sol_cvode_melted&lt;-sol_cvode<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb21-19" data-line-number="19"><span class="st">  </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb21-20" data-line-number="20"><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb21-21" data-line-number="21"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;sundialr&#39;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">f_sundials&lt;-<span class="st"> </span><span class="cf">function</span>(t,u,p){</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">  du &lt;-<span class="st"> </span><span class="kw">vector</span>(<span class="dt">mode =</span> <span class="st">&quot;numeric&quot;</span>, <span class="dt">length =</span> <span class="kw">length</span>(u))</a>
+<a class="sourceLine" id="cb7-3" data-line-number="3">  </a>
+<a class="sourceLine" id="cb7-4" data-line-number="4">  du[<span class="dv">1</span>] =<span class="st"> </span><span class="fl">10.0</span><span class="op">*</span>(u[<span class="dv">2</span>]<span class="op">-</span>u[<span class="dv">1</span>])</a>
+<a class="sourceLine" id="cb7-5" data-line-number="5">  du[<span class="dv">2</span>] =<span class="st"> </span>u[<span class="dv">1</span>]<span class="op">*</span>(<span class="fl">28.0</span><span class="op">-</span>u[<span class="dv">3</span>]) <span class="op">-</span><span class="st"> </span>u[<span class="dv">2</span>]</a>
+<a class="sourceLine" id="cb7-6" data-line-number="6">  du[<span class="dv">3</span>] =<span class="st"> </span>u[<span class="dv">1</span>]<span class="op">*</span>u[<span class="dv">2</span>] <span class="op">-</span><span class="st"> </span>(<span class="dv">8</span><span class="op">/</span><span class="dv">3</span>)<span class="op">*</span>u[<span class="dv">3</span>]</a>
+<a class="sourceLine" id="cb7-7" data-line-number="7">  </a>
+<a class="sourceLine" id="cb7-8" data-line-number="8">  du</a>
+<a class="sourceLine" id="cb7-9" data-line-number="9">}</a>
+<a class="sourceLine" id="cb7-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb7-11" data-line-number="11"><span class="co"># run</span></a>
+<a class="sourceLine" id="cb7-12" data-line-number="12">t_cvode=<span class="kw">system.time</span>({</a>
+<a class="sourceLine" id="cb7-13" data-line-number="13">sol_cvode&lt;-<span class="st"> </span><span class="kw">cvode</span>(<span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">100</span>,<span class="fl">0.01</span>), u0<span class="fl">+1e-10</span>, f_sundials,<span class="dv">0</span>,<span class="dt">reltolerance =</span> <span class="fl">1e-4</span>,<span class="dt">abstolerance =</span> <span class="fl">1e-4</span>)</a>
+<a class="sourceLine" id="cb7-14" data-line-number="14">})</a>
+<a class="sourceLine" id="cb7-15" data-line-number="15"></a>
+<a class="sourceLine" id="cb7-16" data-line-number="16"><span class="co"># </span></a>
+<a class="sourceLine" id="cb7-17" data-line-number="17"><span class="kw">colnames</span>(sol_cvode)&lt;-<span class="kw">c</span>(<span class="st">&#39;time&#39;</span>,<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</a>
+<a class="sourceLine" id="cb7-18" data-line-number="18">sol_cvode_melted&lt;-sol_cvode<span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb7-19" data-line-number="19"><span class="st">  </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb7-20" data-line-number="20"><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb7-21" data-line-number="21"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;sundialr&#39;</span>)</a></code></pre></div>
 <p>and also define one with RCpp:</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1"><span class="co"># With RCpp</span></a>
-<a class="sourceLine" id="cb22-2" data-line-number="2">Rcpp<span class="op">::</span><span class="kw">sourceCpp</span>(<span class="dt">code =</span> <span class="st">&#39;</span></a>
-<a class="sourceLine" id="cb22-3" data-line-number="3"><span class="st">#include &lt;Rcpp.h&gt;</span></a>
-<a class="sourceLine" id="cb22-4" data-line-number="4"><span class="st">using namespace Rcpp;</span></a>
-<a class="sourceLine" id="cb22-5" data-line-number="5"><span class="st">// [[Rcpp::export]]</span></a>
-<a class="sourceLine" id="cb22-6" data-line-number="6"><span class="st">NumericVector f_sundials_Rcpp (double t, NumericVector y, NumericVector p){</span></a>
-<a class="sourceLine" id="cb22-7" data-line-number="7"><span class="st">  // Initialize ydot filled with zeros</span></a>
-<a class="sourceLine" id="cb22-8" data-line-number="8"><span class="st">  NumericVector dydt(y.length());</span></a>
-<a class="sourceLine" id="cb22-9" data-line-number="9"><span class="st">  // </span></a>
-<a class="sourceLine" id="cb22-10" data-line-number="10"><span class="st">   dydt[0] = 10.0*(y[1]-y[0]);</span></a>
-<a class="sourceLine" id="cb22-11" data-line-number="11"><span class="st">  dydt[1] = y[0]*(28.0-y[2]) - y[1];</span></a>
-<a class="sourceLine" id="cb22-12" data-line-number="12"><span class="st">  dydt[2] = y[0]*y[1] - (8/3)*y[2];</span></a>
-<a class="sourceLine" id="cb22-13" data-line-number="13"><span class="st">  return dydt;</span></a>
-<a class="sourceLine" id="cb22-14" data-line-number="14"><span class="st">}&#39;</span>)</a>
-<a class="sourceLine" id="cb22-15" data-line-number="15"></a>
-<a class="sourceLine" id="cb22-16" data-line-number="16"><span class="co"># run</span></a>
-<a class="sourceLine" id="cb22-17" data-line-number="17">t_cvode_cpp=<span class="kw">system.time</span>({</a>
-<a class="sourceLine" id="cb22-18" data-line-number="18">  sol_cvode_cpp&lt;-<span class="st"> </span><span class="kw">cvode</span>(<span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">100</span>,<span class="fl">0.2</span>), u0<span class="fl">+1e-10</span>, f_sundials_Rcpp, <span class="ot">NaN</span>,<span class="dt">reltolerance =</span> <span class="fl">1e-4</span>,<span class="dt">abstolerance =</span> <span class="fl">1e-4</span>)</a>
-<a class="sourceLine" id="cb22-19" data-line-number="19">})</a>
-<a class="sourceLine" id="cb22-20" data-line-number="20"></a>
-<a class="sourceLine" id="cb22-21" data-line-number="21"><span class="co"># </span></a>
-<a class="sourceLine" id="cb22-22" data-line-number="22"><span class="kw">colnames</span>(sol_cvode_cpp)&lt;-<span class="kw">c</span>(<span class="st">&#39;time&#39;</span>,<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</a>
-<a class="sourceLine" id="cb22-23" data-line-number="23">sol_cvode_cpp_melted&lt;-sol_cvode_cpp<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb22-24" data-line-number="24"><span class="st">  </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb22-25" data-line-number="25"><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb22-26" data-line-number="26"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;sundialr_Rcpp&#39;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="co"># With RCpp</span></a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">Rcpp<span class="op">::</span><span class="kw">sourceCpp</span>(<span class="dt">code =</span> <span class="st">&#39;</span></a>
+<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="st">#include &lt;Rcpp.h&gt;</span></a>
+<a class="sourceLine" id="cb8-4" data-line-number="4"><span class="st">using namespace Rcpp;</span></a>
+<a class="sourceLine" id="cb8-5" data-line-number="5"><span class="st">// [[Rcpp::export]]</span></a>
+<a class="sourceLine" id="cb8-6" data-line-number="6"><span class="st">NumericVector f_sundials_Rcpp (double t, NumericVector y, NumericVector p){</span></a>
+<a class="sourceLine" id="cb8-7" data-line-number="7"><span class="st">  // Initialize ydot filled with zeros</span></a>
+<a class="sourceLine" id="cb8-8" data-line-number="8"><span class="st">  NumericVector dydt(y.length());</span></a>
+<a class="sourceLine" id="cb8-9" data-line-number="9"><span class="st">  // </span></a>
+<a class="sourceLine" id="cb8-10" data-line-number="10"><span class="st">   dydt[0] = 10.0*(y[1]-y[0]);</span></a>
+<a class="sourceLine" id="cb8-11" data-line-number="11"><span class="st">  dydt[1] = y[0]*(28.0-y[2]) - y[1];</span></a>
+<a class="sourceLine" id="cb8-12" data-line-number="12"><span class="st">  dydt[2] = y[0]*y[1] - (8/3)*y[2];</span></a>
+<a class="sourceLine" id="cb8-13" data-line-number="13"><span class="st">  return dydt;</span></a>
+<a class="sourceLine" id="cb8-14" data-line-number="14"><span class="st">}&#39;</span>)</a>
+<a class="sourceLine" id="cb8-15" data-line-number="15"></a>
+<a class="sourceLine" id="cb8-16" data-line-number="16"><span class="co"># run</span></a>
+<a class="sourceLine" id="cb8-17" data-line-number="17">t_cvode_cpp=<span class="kw">system.time</span>({</a>
+<a class="sourceLine" id="cb8-18" data-line-number="18">  sol_cvode_cpp&lt;-<span class="st"> </span><span class="kw">cvode</span>(<span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">100</span>,<span class="fl">0.01</span>), u0<span class="fl">+1e-10</span>, f_sundials_Rcpp, <span class="ot">NaN</span>,<span class="dt">reltolerance =</span> <span class="fl">1e-4</span>,<span class="dt">abstolerance =</span> <span class="fl">1e-4</span>)</a>
+<a class="sourceLine" id="cb8-19" data-line-number="19">})</a>
+<a class="sourceLine" id="cb8-20" data-line-number="20"></a>
+<a class="sourceLine" id="cb8-21" data-line-number="21"><span class="co"># </span></a>
+<a class="sourceLine" id="cb8-22" data-line-number="22"><span class="kw">colnames</span>(sol_cvode_cpp)&lt;-<span class="kw">c</span>(<span class="st">&#39;time&#39;</span>,<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</a>
+<a class="sourceLine" id="cb8-23" data-line-number="23">sol_cvode_cpp_melted&lt;-sol_cvode_cpp<span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb8-24" data-line-number="24"><span class="st">  </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb8-25" data-line-number="25"><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb8-26" data-line-number="26"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;sundialr_Rcpp&#39;</span>)</a></code></pre></div>
 </div>
 <div id="some-remarks" class="section level2">
 <h2><span class="header-section-number">2.4</span> Some remarks</h2>
 <p>Taking a quick look at the CPU times shows that the <code>diffeqr</code> and <code>odeintr</code> package are faster than the <code>sundialr</code> one.</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1">all_sols=<span class="kw">bind_rows</span>(sol_cvode_melted,sol_cvode_cpp_melted,</a>
-<a class="sourceLine" id="cb23-2" data-line-number="2">                   sol_odeintr_melted,sol_diffeqr_melted)</a>
-<a class="sourceLine" id="cb23-3" data-line-number="3"><span class="kw">ggplot</span>(all_sols,<span class="kw">aes</span>(<span class="dt">x=</span>time,<span class="dt">y=</span>value))<span class="op">+</span></a>
-<a class="sourceLine" id="cb23-4" data-line-number="4"><span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(<span class="dt">col=</span>u))<span class="op">+</span></a>
-<a class="sourceLine" id="cb23-5" data-line-number="5"><span class="st">  </span><span class="kw">scale_color_brewer</span>(<span class="dt">palette=</span><span class="st">&#39;Set1&#39;</span>)<span class="op">+</span></a>
-<a class="sourceLine" id="cb23-6" data-line-number="6"><span class="st">  </span><span class="kw">theme_minimal</span>()<span class="op">+</span></a>
-<a class="sourceLine" id="cb23-7" data-line-number="7"><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>Method)</a></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">all_sols=<span class="kw">bind_rows</span>(sol_cvode_melted,sol_cvode_cpp_melted,</a>
+<a class="sourceLine" id="cb9-2" data-line-number="2">                   sol_odeintr_melted,sol_diffeqr_melted)</a>
+<a class="sourceLine" id="cb9-3" data-line-number="3"><span class="kw">ggplot</span>(all_sols,<span class="kw">aes</span>(<span class="dt">x=</span>time,<span class="dt">y=</span>value))<span class="op">+</span></a>
+<a class="sourceLine" id="cb9-4" data-line-number="4"><span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(<span class="dt">col=</span>u))<span class="op">+</span></a>
+<a class="sourceLine" id="cb9-5" data-line-number="5"><span class="st">  </span><span class="kw">scale_color_brewer</span>(<span class="dt">palette=</span><span class="st">&#39;Set1&#39;</span>)<span class="op">+</span></a>
+<a class="sourceLine" id="cb9-6" data-line-number="6"><span class="st">  </span><span class="kw">theme_minimal</span>()<span class="op">+</span></a>
+<a class="sourceLine" id="cb9-7" data-line-number="7"><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>Method)</a></code></pre></div>
 <p><img src="_main_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" data-line-number="1"><span class="co"># Time </span></a>
-<a class="sourceLine" id="cb24-2" data-line-number="2">time_df=<span class="kw">bind_rows</span>(t_cvode_cpp,t_cvode,t_diffeqr,t_odeintr);</a>
-<a class="sourceLine" id="cb24-3" data-line-number="3">time_df&lt;-time_df<span class="op">%&gt;%</span><span class="kw">mutate</span>(<span class="dt">package=</span><span class="kw">c</span>(<span class="st">&#39;sundialr_Cpp&#39;</span>,</a>
-<a class="sourceLine" id="cb24-4" data-line-number="4">                                    <span class="st">&#39;sundialr&#39;</span>,</a>
-<a class="sourceLine" id="cb24-5" data-line-number="5">                                    <span class="st">&#39;diffeqr&#39;</span>,</a>
-<a class="sourceLine" id="cb24-6" data-line-number="6">                                    <span class="st">&#39;odeintr&#39;</span>))</a>
-<a class="sourceLine" id="cb24-7" data-line-number="7"></a>
-<a class="sourceLine" id="cb24-8" data-line-number="8"><span class="kw">kable</span>(time_df)</a></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="co"># Time </span></a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">time_df=<span class="kw">bind_rows</span>(t_cvode_cpp,t_cvode,t_diffeqr,t_odeintr);</a>
+<a class="sourceLine" id="cb10-3" data-line-number="3">time_df&lt;-time_df<span class="op">%&gt;%</span><span class="kw">mutate</span>(<span class="dt">package=</span><span class="kw">c</span>(<span class="st">&#39;sundialr_Cpp&#39;</span>,</a>
+<a class="sourceLine" id="cb10-4" data-line-number="4">                                    <span class="st">&#39;sundialr&#39;</span>,</a>
+<a class="sourceLine" id="cb10-5" data-line-number="5">                                    <span class="st">&#39;diffeqr&#39;</span>,</a>
+<a class="sourceLine" id="cb10-6" data-line-number="6">                                    <span class="st">&#39;odeintr&#39;</span>))</a>
+<a class="sourceLine" id="cb10-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb10-8" data-line-number="8"><span class="kw">kable</span>(time_df)</a></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -330,32 +295,32 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </thead>
 <tbody>
 <tr class="odd">
-<td align="right">0.122</td>
-<td align="right">0.003</td>
-<td align="right">0.125</td>
+<td align="right">0.160</td>
+<td align="right">0.005</td>
+<td align="right">0.166</td>
 <td align="right">0.000</td>
 <td align="right">0.000</td>
 <td align="left">sundialr_Cpp</td>
 </tr>
 <tr class="even">
-<td align="right">0.171</td>
-<td align="right">0.008</td>
-<td align="right">0.179</td>
+<td align="right">0.149</td>
+<td align="right">0.007</td>
+<td align="right">0.161</td>
 <td align="right">0.000</td>
 <td align="right">0.000</td>
 <td align="left">sundialr</td>
 </tr>
 <tr class="odd">
 <td align="right">0.008</td>
-<td align="right">0.008</td>
-<td align="right">0.142</td>
+<td align="right">0.012</td>
+<td align="right">0.152</td>
 <td align="right">0.011</td>
-<td align="right">0.082</td>
+<td align="right">0.076</td>
 <td align="left">diffeqr</td>
 </tr>
 <tr class="even">
 <td align="right">0.017</td>
-<td align="right">0.002</td>
+<td align="right">0.001</td>
 <td align="right">0.018</td>
 <td align="right">0.000</td>
 <td align="right">0.000</td>
