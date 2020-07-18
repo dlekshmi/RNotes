@@ -4,7 +4,7 @@ date: 17-07-2020
 ---
 
 # Trying some ODE solvers in R
-```{r,warning=F}
+```{r,warning=F,echo=FALSE}
 if (!require("checkpoint", character.only = TRUE)) {
   install.packages("checkpoint", dependencies = TRUE)
   library(checkpoint)
@@ -120,7 +120,7 @@ f_sundials<- function(t,u,p){
 
 # run
 t_cvode=system.time({
-sol_cvode<- cvode(seq(0,100,0.2), u0+1e-10, f_sundials,0,reltolerance = 1e-4,abstolerance = 1e-4)
+sol_cvode<- cvode(seq(0,100,0.01), u0+1e-10, f_sundials,0,reltolerance = 1e-4,abstolerance = 1e-4)
 })
 
 # 
@@ -151,7 +151,7 @@ NumericVector f_sundials_Rcpp (double t, NumericVector y, NumericVector p){
 
 # run
 t_cvode_cpp=system.time({
-  sol_cvode_cpp<- cvode(seq(0,100,0.2), u0+1e-10, f_sundials_Rcpp, NaN,reltolerance = 1e-4,abstolerance = 1e-4)
+  sol_cvode_cpp<- cvode(seq(0,100,0.01), u0+1e-10, f_sundials_Rcpp, NaN,reltolerance = 1e-4,abstolerance = 1e-4)
 })
 
 # 
