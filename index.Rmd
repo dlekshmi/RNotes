@@ -9,4 +9,4 @@ output:
 
 # Introduction
 
-I am Lekshmi Dharmarajan, and recently have found all this new found time during the lockdown season of 2020. With my partner and family all in different parts of thw world, what better time to revisit an old friend R. This page comtains my notes which I often write down while exploring something new. Since, I have predominantly done things in MATLAB before, the shift to open-source tools is so rewarding. Feel free to contact me if you find something odd or incorrect from my side, this is not surprising as like I said before, these are `just my notes'. 
+I am Lekshmi Dharmarajan, and recently have found all this new found time during the lockdown season of 2020. With my partner and family all in different parts of the world, what better time to revisit an old friend R. This page contains my notes which I often write down while exploring something new. Since, I have predominantly done things in MATLAB before, the shift to open-source tools is so rewarding. Feel free to contact me if you find something odd or incorrect from my side, this is not surprising as like I said before, these are `just my notes'. 
