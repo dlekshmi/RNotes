@@ -1,0 +1,60 @@
+---
+title: "02-WIP"
+date: 17-08-2020
+---
+
+# WIP
+
+When I meet other modelers who work in inference, a common suggestion that comes up is to try working with RSTAN and with HMC (Hamilontian Monte Carlo). So it is only fair that I try this out. Let us analyze the COVID counts collected in Switzerland over the past months with an SIR  model. I chose this model and data just out of curiosity and as a learning exercise. 
+
+**DISCLAIMER**: Note that this model has very simple assumptions, and the data collected has many variables that are not accounted for in the model. Also keep in mind the objective of this exercise is not to try out some inference methods on this data and not draw conclusions or suggestions for possible interventions for COVID. 
+
+
+
+```{r,warning=F,echo=FALSE,message=FALSE}
+source('setup.R')
+```
+
+## Data 
+We will download the covid data from Switzerland from the git repo by *openZH*. We will specifically look at the data from the canton Basel, because I live here. We plot the data with respect to the first data point. 
+
+```{r,warning=F,echo=FALSE}
+BS_covid<-"https://raw.github.com/openZH/covid_19/master/fallzahlen_kanton_total_csv/COVID19_Fallzahlen_Kanton_BS_total.csv"
+BS_data<-read.csv(BS_covid)
+
+head(BS_data)
+
+BS_data<-BS_data%>%
+    mutate(DiffDays=difftime(date,BS_data$date[1],units = 'days'),
+           conf_cases=c(ncumul_conf[1],diff(ncumul_conf,1)))
+
+ggplot(BS_data,aes(x=DiffDays,y=ncumul_conf))+
+  geom_point()+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle=90))+
+  xlab('Days since first data point')+
+  ylab('Cummulative confirmed case counts')
+
+
+```
+
+Rather than plotting the cumulative cases, we may be interested to look at the confirmed cases on days we obtained data. To visualize the trend, we also fit a generalized additive model model using an assumption that the likelihood of the data can be described with a Poisson distribution (with a log link function). 
+
+```{r,echo=FALSE}
+ggplot(BS_data,aes(x=DiffDays,y=conf_cases))+
+    geom_point()+
+    theme_classic()+
+    theme(axis.text.x = element_text(angle=90))+
+    geom_smooth(method='gam', formula = y ~ s(x, bs = "cs"),
+                method.args=list(family=poisson))+
+    xlab('Days since first data point')+
+   ylab('Confirmed case counts')
+```
+
+## Model 
+
+
+
+
+
+## Inference

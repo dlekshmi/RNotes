@@ -3,6 +3,7 @@ title: "Notes and some fun with R"
 author: "Lekshmi"
 date: "`r Sys.Date()`"
 site: "bookdown::bookdown_site"
+new_session: yes
 output: 
   bookdown::gitbook: default
 ---

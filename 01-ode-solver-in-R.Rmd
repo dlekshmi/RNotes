@@ -1,32 +1,11 @@
 ---
 title: "01-Trying some ODE solvers in R"
-date: 17-07-2020
+date: "17-07-2020"
 ---
 
 # Trying some ODE solvers in R
-```{r,warning=F,echo=FALSE}
-if (!require("checkpoint", character.only = TRUE)) {
-  install.packages("checkpoint", dependencies = TRUE)
-  library(checkpoint)
-}
-
-if (!require("fpp", character.only = TRUE)) {
-  install.packages("fpp", dependencies = TRUE)
-  library(fpp)
-}
-
-dir.create(".checkpoint")
-checkpoint('2020-07-17',checkpointLocation=getwd())
-
-
-# Packages
-library(tidyverse)
-library(JuliaCall)
-library(diffeqr)
-library(odeintr)
-library(sundialr)
-library(knitr)
-library(bookdown)
+```{r,warning=F,echo=FALSE,message=FALSE}
+source('setup.R')
 ```
 The last time I had exclusively programmed in R, it was 2014. At that point, I decided to make a shift from R to MATLAB partly because it was the tool that was used in our lab for solving ODEs and numerical analysis and secondly, R had options I was not very interested to use. Now that I have all this new found time after my pandemic defense, what better way to re-educate, and recalibrate myself and check in at what the R world is upto. 
 
@@ -37,13 +16,13 @@ What appealed to me is that this package interfaces with the [DifferentialEquati
 
 We begin by setting up the julia interface to R by calling `julia_setup` function in [JuliaCall](https://cran.r-project.org/web/packages/JuliaCall/index.html) package. Note that this takes some (considerable) time to run when doing it the first time.
 
-```{r}
-# The set up takes time, (a LOT of time when doing the first stime.)
-julia_setup(JULIA_HOME="/Applications/Julia-1.2.app/Contents/Resources/julia/bin")
+```{r julia_init, cache=TRUE}
+# The set up takes time, (a LOT of time when doing the first time.)
+julia_setup(JULIA_HOME="/Applications/Julia-1.5.app/Contents/Resources/julia/bin/")
 ```
 
 Then, we setup the `diffeqr` package:
-```{r}
+```{r diffrqr_init, cache=TRUE}
 diffeqr::diffeq_setup()
 ```
 
@@ -107,7 +86,7 @@ sol_odeintr_melted<-sol_odeintr%>%
 ## sundialr package
 Finally, the [subdialr](https://cran.r-project.org/web/packages/sundialr/index.html) package that interfaces with CVODE/CVODES (something I am more familiar with). I define a model in R and run it: 
 
-```{r}
+```{r sundial_r, cache=TRUE}
 f_sundials<- function(t,u,p){
   du <- vector(mode = "numeric", length = length(u))
   
@@ -120,7 +99,7 @@ f_sundials<- function(t,u,p){
 
 # run
 t_cvode=system.time({
-sol_cvode<- cvode(seq(0,100,0.01), u0+1e-10, f_sundials,0,reltolerance = 1e-4,abstolerance = 1e-4)
+sol_cvode<- cvode(seq(0,100,0.01), u0+1e-5, f_sundials,0,reltolerance = 1e-10,abstolerance = 1e-10)
 })
 
 # 
@@ -151,7 +130,7 @@ NumericVector f_sundials_Rcpp (double t, NumericVector y, NumericVector p){
 
 # run
 t_cvode_cpp=system.time({
-  sol_cvode_cpp<- cvode(seq(0,100,0.01), u0+1e-10, f_sundials_Rcpp, NaN,reltolerance = 1e-4,abstolerance = 1e-4)
+  sol_cvode_cpp<- cvode(seq(0,100,0.01), u0+1e-10, f_sundials_Rcpp, NaN,reltolerance = 1e-10,abstolerance = 1e-10)
 })
 
 # 
