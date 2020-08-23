@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Notes and some fun with R</title>
-  <meta name="description" content="Notes and some fun with R" />
+  <title>3 WIP | Notes and some fun with R</title>
+  <meta name="description" content="3 WIP | Notes and some fun with R" />
   <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Notes and some fun with R" />
+  <meta property="og:title" content="3 WIP | Notes and some fun with R" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Notes and some fun with R" />
+  <meta name="twitter:title" content="3 WIP | Notes and some fun with R" />
   
   
   
@@ -31,8 +31,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
+<link rel="prev" href="trying-some-ode-solvers-in-r.html"/>
 
-<link rel="next" href="trying-some-ode-solvers-in-r.html"/>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -159,23 +159,69 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Notes and some fun with R</h1>
-<p class="author"><em>Lekshmi</em></p>
-<p class="date"><em>2020-08-23</em></p>
+<div id="wip" class="section level1">
+<h1><span class="header-section-number">3</span> WIP</h1>
+<p>When I meet other modelers who work in inference, a common suggestion that comes up is to try working with RSTAN and with HMC (Hamilontian Monte Carlo). So it is only fair that I try this out. Let us analyze the COVID counts collected in Switzerland over the past months with an SIR model. I chose this model and data just out of curiosity and as a learning exercise.</p>
+<p><strong>DISCLAIMER</strong>: Note that this model has very simple assumptions, and the data collected has many variables that are not accounted for in the model. Also keep in mind the objective of this exercise is not to try out some inference methods on this data and not draw conclusions or suggestions for possible interventions for COVID.</p>
+<div id="data" class="section level2">
+<h2><span class="header-section-number">3.1</span> Data</h2>
+<p>We will download the covid data from Switzerland from the git repo by <em>openZH</em>. We will specifically look at the data from the canton Basel, because I live here. We plot the data with respect to the first data point.</p>
+<pre><code>##         date  time abbreviation_canton_and_fl ncumul_tested ncumul_conf ncumul_hosp ncumul_ICU ncumul_vent ncumul_released
+## 1 2020-02-27 19:17                         BS            NA           1          NA         NA          NA              NA
+## 2 2020-02-28 10:15                         BS            NA           1          NA         NA          NA              NA
+## 3 2020-02-29 15:23                         BS            NA           1          NA         NA          NA              NA
+## 4 2020-03-01 17:29                         BS            NA           1          NA         NA          NA              NA
+## 5 2020-03-02 17:15                         BS           235           1          NA         NA          NA              NA
+## 6 2020-03-03 17:30                         BS            NA           3          NA         NA          NA              NA
+##   ncumul_deceased
+## 1              NA
+## 2              NA
+## 3              NA
+## 4              NA
+## 5              NA
+## 6              NA
+##                                                                                                                                            source
+## 1 https://www.coronavirus.bs.ch/nm/2020-coronavirus-erster-positiver-fall-in-basel-stadt-zweiter-positiv-getesteter-ausserkantonaler-fall-gd.html
+## 2                                                                                 https://twitter.com/BR_Sprecher/status/1233316679863631873?s=20
+## 3                                                                               https://twitter.com/BAG_OFSP_UFSP/status/1233759578241863681?s=20
+## 4                            https://www.coronavirus.bs.ch/nm/2020-coronavirus-anzahl-der-getesteten-faelle-und-zwischenstand-kita-riehen-gd.html
+## 5                                              https://www.coronavirus.bs.ch/nm/2020-coronavirus-zwei-neue-positive-faelle-in-basel-stadt-gd.html
+## 6                                                                               https://twitter.com/BAG_OFSP_UFSP/status/1234880556095213569?s=20
+##   ncumul_confirmed_non_resident current_hosp_non_resident current_quarantined_riskareatravel current_quarantined_total
+## 1                             1                        NA                                 NA                        NA
+## 2                             1                        NA                                 NA                        NA
+## 3                             1                        NA                                 NA                        NA
+## 4                             1                        NA                                 NA                        NA
+## 5                             3                        NA                                 NA                        NA
+## 6                             3                        NA                                 NA                        NA
+##   diff_tested current_hosp_resident
+## 1          NA                    NA
+## 2          NA                    NA
+## 3          NA                    NA
+## 4          NA                    NA
+## 5          NA                    NA
+## 6          NA                    NA</code></pre>
+<pre><code>## Don&#39;t know how to automatically pick scale for object of type difftime. Defaulting to continuous.</code></pre>
+<p><img src="_main_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>Rather than plotting the cumulative cases, we may be interested to look at the confirmed cases on days we obtained data. To visualize the trend, we also fit a generalized additive model model using an assumption that the likelihood of the data can be described with a Poisson distribution (with a log link function).</p>
+<pre><code>## Don&#39;t know how to automatically pick scale for object of type difftime. Defaulting to continuous.</code></pre>
+<p><img src="_main_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 </div>
-<div id="introduction" class="section level1">
-<h1><span class="header-section-number">1</span> Introduction</h1>
-<p>I am Lekshmi Dharmarajan, and recently have found all this new found time during the lockdown season of 2020. With my partner and family all in different parts of the world, what better time to revisit an old friend R. This page contains my notes which I often write down while exploring something new. Since, I have predominantly done things in MATLAB before, the shift to open-source tools is so rewarding. Feel free to contact me if you find something odd or incorrect from my side, this is not surprising as like I said before, these are `just my notes’.</p>
+<div id="model" class="section level2">
+<h2><span class="header-section-number">3.2</span> Model</h2>
+</div>
+<div id="inference" class="section level2">
+<h2><span class="header-section-number">3.3</span> Inference</h2>
 
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
+<a href="trying-some-ode-solvers-in-r.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
 
-<a href="trying-some-ode-solvers-in-r.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

@@ -24,7 +24,7 @@
 <meta name="author" content="Lekshmi" />
 
 
-<meta name="date" content="2020-07-18" />
+<meta name="date" content="2020-08-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -32,7 +32,7 @@
   
   
 <link rel="prev" href="index.html"/>
-
+<link rel="next" href="wip.html"/>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -50,12 +50,13 @@
 
 
 
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
 
 
 <style type="text/css">
-a.sourceLine { display: inline-block; line-height: 1.25; }
-a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; }
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode { white-space: pre; position: relative; }
 pre.sourceCode { margin: 0; }
@@ -64,14 +65,16 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 code.sourceCode { white-space: pre-wrap; }
-a.sourceLine { text-indent: -1em; padding-left: 1em; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
-pre.numberSource a.sourceLine
-  { position: relative; left: -4em; }
-pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all; display: inline-block;
+    border: none; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -80,9 +83,9 @@ pre.numberSource a.sourceLine::before
   }
 pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
 div.sourceCode
-  {  }
+  {   }
 @media screen {
-a.sourceLine::before { text-decoration: underline; }
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
@@ -134,6 +137,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="2.3" data-path="trying-some-ode-solvers-in-r.html"><a href="trying-some-ode-solvers-in-r.html#sundialr-package"><i class="fa fa-check"></i><b>2.3</b> sundialr package</a></li>
 <li class="chapter" data-level="2.4" data-path="trying-some-ode-solvers-in-r.html"><a href="trying-some-ode-solvers-in-r.html#some-remarks"><i class="fa fa-check"></i><b>2.4</b> Some remarks</a></li>
 </ul></li>
+<li class="chapter" data-level="3" data-path="wip.html"><a href="wip.html"><i class="fa fa-check"></i><b>3</b> WIP</a><ul>
+<li class="chapter" data-level="3.1" data-path="wip.html"><a href="wip.html#data"><i class="fa fa-check"></i><b>3.1</b> Data</a></li>
+<li class="chapter" data-level="3.2" data-path="wip.html"><a href="wip.html#model"><i class="fa fa-check"></i><b>3.2</b> Model</a></li>
+<li class="chapter" data-level="3.3" data-path="wip.html"><a href="wip.html#inference"><i class="fa fa-check"></i><b>3.3</b> Inference</a></li>
+</ul></li>
 </ul>
 
       </nav>
@@ -153,135 +161,137 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="trying-some-ode-solvers-in-r" class="section level1">
 <h1><span class="header-section-number">2</span> Trying some ODE solvers in R</h1>
-<pre><code>## Using checkpoint directory /Users/dlekshmi/.checkpoint/2020-07-17/lib/x86_64-apple-darwin15.6.0/3.6.0</code></pre>
 <p>The last time I had exclusively programmed in R, it was 2014. At that point, I decided to make a shift from R to MATLAB partly because it was the tool that was used in our lab for solving ODEs and numerical analysis and secondly, R had options I was not very interested to use. Now that I have all this new found time after my pandemic defense, what better way to re-educate, and recalibrate myself and check in at what the R world is upto.</p>
 <p>So promptly I visited the <a href="https://cran.r-project.org/web/views/DifferentialEquations.html">CRAN website</a> and picked out the ones I found interesting to try out. Also see the <a href="https://www.stochasticlifestyle.com/comparison-differential-equation-solver-suites-matlab-r-julia-python-c-fortran/">nice blog</a> comparing different solvers across different languages. As I usually work with ODEs, I checked out a standard non-linear ODE function that I wanted to integrate i.e. the Lokta-Volterra system. I also decided to not use the odeSolve package as I found the others more appealing in terms of model definition and what they interface with.</p>
 <div id="diffeqr-package" class="section level2">
 <h2><span class="header-section-number">2.1</span> diffeqr package</h2>
 <p>What appealed to me is that this package interfaces with the <a href="https://github.com/SciML/DifferentialEquations.jl">DifferentialEquations.jl</a> in Julia which includes solvers for DDE, ODEs, SDEs, PDEs and many more. Moreover, in comparison to other tools, the julia package has appealing features, of which I would like to highlight event-handling, good efficiency and symbolic calculation of jacobians and autodifferentiation. Also note, that this gives us access to all the <a href="https://docs.sciml.ai/stable/solvers/ode_solve/">solvers in Julia</a> Therefore, an R package that interfaces to the julia package intrgigued me.</p>
 <p>We begin by setting up the julia interface to R by calling <code>julia_setup</code> function in <a href="https://cran.r-project.org/web/packages/JuliaCall/index.html">JuliaCall</a> package. Note that this takes some (considerable) time to run when doing it the first time.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="co"># The set up takes time, (a LOT of time when doing the first stime.)</span></a>
-<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw">julia_setup</span>(<span class="dt">JULIA_HOME=</span><span class="st">&quot;/Applications/Julia-1.2.app/Contents/Resources/julia/bin&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="trying-some-ode-solvers-in-r.html#cb1-1"></a><span class="co"># The set up takes time, (a LOT of time when doing the first time.)</span></span>
+<span id="cb1-2"><a href="trying-some-ode-solvers-in-r.html#cb1-2"></a><span class="kw">julia_setup</span>(<span class="dt">JULIA_HOME=</span><span class="st">&quot;/Applications/Julia-1.5.app/Contents/Resources/julia/bin/&quot;</span>)</span></code></pre></div>
+<pre><code>## Julia version 1.5.0 at location /Applications/Julia-1.5.app/Contents/Resources/julia/bin will be used.</code></pre>
+<pre><code>## Loading setup script for JuliaCall...</code></pre>
+<pre><code>## Finish loading setup script for JuliaCall.</code></pre>
 <p>Then, we setup the <code>diffeqr</code> package:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">diffeqr<span class="op">::</span><span class="kw">diffeq_setup</span>()</a></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="trying-some-ode-solvers-in-r.html#cb5-1"></a>diffeqr<span class="op">::</span><span class="kw">diffeq_setup</span>()</span></code></pre></div>
 <p>We begin by defining our ODE system to be evaluated with Julia as ‘f’ and define the initial conditionas and the time span we will integrate the system over.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">f &lt;-<span class="st"> </span>JuliaCall<span class="op">::</span><span class="kw">julia_eval</span>(<span class="st">&quot;</span></a>
-<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="st">function f(du,u,p,t)</span></a>
-<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="st">  du[1] = 10.0*(u[2]-u[1])</span></a>
-<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="st">  du[2] = u[1]*(28.0-u[3]) - u[2]</span></a>
-<a class="sourceLine" id="cb4-5" data-line-number="5"><span class="st">  du[3] = u[1]*u[2] - (8/3)*u[3]</span></a>
-<a class="sourceLine" id="cb4-6" data-line-number="6"><span class="st">end&quot;</span>)</a>
-<a class="sourceLine" id="cb4-7" data-line-number="7"></a>
-<a class="sourceLine" id="cb4-8" data-line-number="8">u0 =<span class="st"> </span><span class="kw">c</span>(<span class="fl">1.0</span>,<span class="fl">0.0</span>,<span class="fl">0.0</span>)</a>
-<a class="sourceLine" id="cb4-9" data-line-number="9">tspan &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="fl">0.0</span>,<span class="fl">100.0</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="trying-some-ode-solvers-in-r.html#cb6-1"></a>f &lt;-<span class="st"> </span>JuliaCall<span class="op">::</span><span class="kw">julia_eval</span>(<span class="st">&quot;</span></span>
+<span id="cb6-2"><a href="trying-some-ode-solvers-in-r.html#cb6-2"></a><span class="st">function f(du,u,p,t)</span></span>
+<span id="cb6-3"><a href="trying-some-ode-solvers-in-r.html#cb6-3"></a><span class="st">  du[1] = 10.0*(u[2]-u[1])</span></span>
+<span id="cb6-4"><a href="trying-some-ode-solvers-in-r.html#cb6-4"></a><span class="st">  du[2] = u[1]*(28.0-u[3]) - u[2]</span></span>
+<span id="cb6-5"><a href="trying-some-ode-solvers-in-r.html#cb6-5"></a><span class="st">  du[3] = u[1]*u[2] - (8/3)*u[3]</span></span>
+<span id="cb6-6"><a href="trying-some-ode-solvers-in-r.html#cb6-6"></a><span class="st">end&quot;</span>)</span>
+<span id="cb6-7"><a href="trying-some-ode-solvers-in-r.html#cb6-7"></a></span>
+<span id="cb6-8"><a href="trying-some-ode-solvers-in-r.html#cb6-8"></a>u0 =<span class="st"> </span><span class="kw">c</span>(<span class="fl">1.0</span>,<span class="fl">0.0</span>,<span class="fl">0.0</span>)</span>
+<span id="cb6-9"><a href="trying-some-ode-solvers-in-r.html#cb6-9"></a>tspan &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="fl">0.0</span>,<span class="fl">100.0</span>)</span></code></pre></div>
 <p>We then solve the ODE. Note that the first time we called the model it also compiles, therefore I store only the second time taken in the second time we solve it.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">2</span>){</a>
-<a class="sourceLine" id="cb5-2" data-line-number="2">t_diffeqr&lt;-<span class="kw">system.time</span>(</a>
-<a class="sourceLine" id="cb5-3" data-line-number="3">  {sol =<span class="st"> </span>diffeqr<span class="op">::</span><span class="kw">ode.solve</span>(<span class="st">&#39;f&#39;</span>,u0,tspan,<span class="dt">reltol=</span><span class="fl">1e-4</span>,<span class="dt">abstol=</span><span class="fl">1e-4</span>)}</a>
-<a class="sourceLine" id="cb5-4" data-line-number="4">  )</a>
-<a class="sourceLine" id="cb5-5" data-line-number="5">}</a>
-<a class="sourceLine" id="cb5-6" data-line-number="6"><span class="kw">colnames</span>(sol<span class="op">$</span>u)&lt;-<span class="kw">c</span>(<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</a>
-<a class="sourceLine" id="cb5-7" data-line-number="7">sol_df=sol<span class="op">$</span>u<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb5-8" data-line-number="8"><span class="st">      </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb5-9" data-line-number="9"><span class="st">      </span><span class="kw">mutate</span>(<span class="dt">time=</span>sol<span class="op">$</span>t)</a>
-<a class="sourceLine" id="cb5-10" data-line-number="10"></a>
-<a class="sourceLine" id="cb5-11" data-line-number="11">sol_diffeqr_melted=sol_df<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb5-12" data-line-number="12"><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb5-13" data-line-number="13"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;diffeqr&#39;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="trying-some-ode-solvers-in-r.html#cb7-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">2</span>){</span>
+<span id="cb7-2"><a href="trying-some-ode-solvers-in-r.html#cb7-2"></a>t_diffeqr&lt;-<span class="kw">system.time</span>(</span>
+<span id="cb7-3"><a href="trying-some-ode-solvers-in-r.html#cb7-3"></a>  {sol =<span class="st"> </span>diffeqr<span class="op">::</span><span class="kw">ode.solve</span>(<span class="st">&#39;f&#39;</span>,u0,tspan,<span class="dt">reltol=</span><span class="fl">1e-4</span>,<span class="dt">abstol=</span><span class="fl">1e-4</span>)}</span>
+<span id="cb7-4"><a href="trying-some-ode-solvers-in-r.html#cb7-4"></a>  )</span>
+<span id="cb7-5"><a href="trying-some-ode-solvers-in-r.html#cb7-5"></a>}</span>
+<span id="cb7-6"><a href="trying-some-ode-solvers-in-r.html#cb7-6"></a><span class="kw">colnames</span>(sol<span class="op">$</span>u)&lt;-<span class="kw">c</span>(<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</span>
+<span id="cb7-7"><a href="trying-some-ode-solvers-in-r.html#cb7-7"></a>sol_df=sol<span class="op">$</span>u<span class="op">%&gt;%</span></span>
+<span id="cb7-8"><a href="trying-some-ode-solvers-in-r.html#cb7-8"></a><span class="st">      </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></span>
+<span id="cb7-9"><a href="trying-some-ode-solvers-in-r.html#cb7-9"></a><span class="st">      </span><span class="kw">mutate</span>(<span class="dt">time=</span>sol<span class="op">$</span>t)</span>
+<span id="cb7-10"><a href="trying-some-ode-solvers-in-r.html#cb7-10"></a></span>
+<span id="cb7-11"><a href="trying-some-ode-solvers-in-r.html#cb7-11"></a>sol_diffeqr_melted=sol_df<span class="op">%&gt;%</span></span>
+<span id="cb7-12"><a href="trying-some-ode-solvers-in-r.html#cb7-12"></a><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></span>
+<span id="cb7-13"><a href="trying-some-ode-solvers-in-r.html#cb7-13"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;diffeqr&#39;</span>)</span></code></pre></div>
 </div>
 <div id="odeintr-package" class="section level2">
 <h2><span class="header-section-number">2.2</span> odeintr package</h2>
 <p>The odeintr package uses the integration engine from <a href="https://headmyshoulder.github.io/odeint-v2/">Boost</a> and therefore compiles the model in C++. We specify the model in C, compile and integrate it. The nice part it this package allows you to use all the steppers in <code>Boost</code>. I liked the intuitive/ clean way of defining the models and running it.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">f_c &lt;-<span class="st"> &#39;</span></a>
-<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="st">  dxdt[0] = 10.0*(x[1]-x[0]);</span></a>
-<a class="sourceLine" id="cb6-3" data-line-number="3"><span class="st">  dxdt[1] = x[0]*(28.0-x[2]) - x[1];</span></a>
-<a class="sourceLine" id="cb6-4" data-line-number="4"><span class="st">  dxdt[2] = x[0]*x[1] - (8/3)*x[2];</span></a>
-<a class="sourceLine" id="cb6-5" data-line-number="5"><span class="st">&#39;</span></a>
-<a class="sourceLine" id="cb6-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb6-7" data-line-number="7"><span class="co"># compile model, and pass integration options</span></a>
-<a class="sourceLine" id="cb6-8" data-line-number="8"><span class="kw">compile_sys</span>(<span class="st">&quot;lorenz&quot;</span>, f_c,<span class="dt">atol =</span> <span class="fl">1e-04</span>, <span class="dt">rtol =</span> <span class="fl">1e-04</span>)</a>
-<a class="sourceLine" id="cb6-9" data-line-number="9"></a>
-<a class="sourceLine" id="cb6-10" data-line-number="10"><span class="co"># Run model</span></a>
-<a class="sourceLine" id="cb6-11" data-line-number="11">t_odeintr=<span class="kw">system.time</span>({sol_odeintr =<span class="st"> </span><span class="kw">lorenz</span>(u0, <span class="dv">100</span>, <span class="fl">0.001</span>)})</a>
-<a class="sourceLine" id="cb6-12" data-line-number="12"></a>
-<a class="sourceLine" id="cb6-13" data-line-number="13"><span class="co"># Results</span></a>
-<a class="sourceLine" id="cb6-14" data-line-number="14"><span class="kw">colnames</span>(sol_odeintr)&lt;-<span class="kw">c</span>(<span class="st">&#39;time&#39;</span>,<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</a>
-<a class="sourceLine" id="cb6-15" data-line-number="15">sol_odeintr_melted&lt;-sol_odeintr<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb6-16" data-line-number="16"><span class="st">  </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb6-17" data-line-number="17"><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb6-18" data-line-number="18"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;odeintr&#39;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="trying-some-ode-solvers-in-r.html#cb8-1"></a>f_c &lt;-<span class="st"> &#39;</span></span>
+<span id="cb8-2"><a href="trying-some-ode-solvers-in-r.html#cb8-2"></a><span class="st">  dxdt[0] = 10.0*(x[1]-x[0]);</span></span>
+<span id="cb8-3"><a href="trying-some-ode-solvers-in-r.html#cb8-3"></a><span class="st">  dxdt[1] = x[0]*(28.0-x[2]) - x[1];</span></span>
+<span id="cb8-4"><a href="trying-some-ode-solvers-in-r.html#cb8-4"></a><span class="st">  dxdt[2] = x[0]*x[1] - (8/3)*x[2];</span></span>
+<span id="cb8-5"><a href="trying-some-ode-solvers-in-r.html#cb8-5"></a><span class="st">&#39;</span></span>
+<span id="cb8-6"><a href="trying-some-ode-solvers-in-r.html#cb8-6"></a></span>
+<span id="cb8-7"><a href="trying-some-ode-solvers-in-r.html#cb8-7"></a><span class="co"># compile model, and pass integration options</span></span>
+<span id="cb8-8"><a href="trying-some-ode-solvers-in-r.html#cb8-8"></a><span class="kw">compile_sys</span>(<span class="st">&quot;lorenz&quot;</span>, f_c,<span class="dt">atol =</span> <span class="fl">1e-04</span>, <span class="dt">rtol =</span> <span class="fl">1e-04</span>)</span>
+<span id="cb8-9"><a href="trying-some-ode-solvers-in-r.html#cb8-9"></a></span>
+<span id="cb8-10"><a href="trying-some-ode-solvers-in-r.html#cb8-10"></a><span class="co"># Run model</span></span>
+<span id="cb8-11"><a href="trying-some-ode-solvers-in-r.html#cb8-11"></a>t_odeintr=<span class="kw">system.time</span>({sol_odeintr =<span class="st"> </span><span class="kw">lorenz</span>(u0, <span class="dv">100</span>, <span class="fl">0.001</span>)})</span>
+<span id="cb8-12"><a href="trying-some-ode-solvers-in-r.html#cb8-12"></a></span>
+<span id="cb8-13"><a href="trying-some-ode-solvers-in-r.html#cb8-13"></a><span class="co"># Results</span></span>
+<span id="cb8-14"><a href="trying-some-ode-solvers-in-r.html#cb8-14"></a><span class="kw">colnames</span>(sol_odeintr)&lt;-<span class="kw">c</span>(<span class="st">&#39;time&#39;</span>,<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</span>
+<span id="cb8-15"><a href="trying-some-ode-solvers-in-r.html#cb8-15"></a>sol_odeintr_melted&lt;-sol_odeintr<span class="op">%&gt;%</span></span>
+<span id="cb8-16"><a href="trying-some-ode-solvers-in-r.html#cb8-16"></a><span class="st">  </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></span>
+<span id="cb8-17"><a href="trying-some-ode-solvers-in-r.html#cb8-17"></a><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></span>
+<span id="cb8-18"><a href="trying-some-ode-solvers-in-r.html#cb8-18"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;odeintr&#39;</span>)</span></code></pre></div>
 </div>
 <div id="sundialr-package" class="section level2">
 <h2><span class="header-section-number">2.3</span> sundialr package</h2>
 <p>Finally, the <a href="https://cran.r-project.org/web/packages/sundialr/index.html">subdialr</a> package that interfaces with CVODE/CVODES (something I am more familiar with). I define a model in R and run it:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">f_sundials&lt;-<span class="st"> </span><span class="cf">function</span>(t,u,p){</a>
-<a class="sourceLine" id="cb7-2" data-line-number="2">  du &lt;-<span class="st"> </span><span class="kw">vector</span>(<span class="dt">mode =</span> <span class="st">&quot;numeric&quot;</span>, <span class="dt">length =</span> <span class="kw">length</span>(u))</a>
-<a class="sourceLine" id="cb7-3" data-line-number="3">  </a>
-<a class="sourceLine" id="cb7-4" data-line-number="4">  du[<span class="dv">1</span>] =<span class="st"> </span><span class="fl">10.0</span><span class="op">*</span>(u[<span class="dv">2</span>]<span class="op">-</span>u[<span class="dv">1</span>])</a>
-<a class="sourceLine" id="cb7-5" data-line-number="5">  du[<span class="dv">2</span>] =<span class="st"> </span>u[<span class="dv">1</span>]<span class="op">*</span>(<span class="fl">28.0</span><span class="op">-</span>u[<span class="dv">3</span>]) <span class="op">-</span><span class="st"> </span>u[<span class="dv">2</span>]</a>
-<a class="sourceLine" id="cb7-6" data-line-number="6">  du[<span class="dv">3</span>] =<span class="st"> </span>u[<span class="dv">1</span>]<span class="op">*</span>u[<span class="dv">2</span>] <span class="op">-</span><span class="st"> </span>(<span class="dv">8</span><span class="op">/</span><span class="dv">3</span>)<span class="op">*</span>u[<span class="dv">3</span>]</a>
-<a class="sourceLine" id="cb7-7" data-line-number="7">  </a>
-<a class="sourceLine" id="cb7-8" data-line-number="8">  du</a>
-<a class="sourceLine" id="cb7-9" data-line-number="9">}</a>
-<a class="sourceLine" id="cb7-10" data-line-number="10"></a>
-<a class="sourceLine" id="cb7-11" data-line-number="11"><span class="co"># run</span></a>
-<a class="sourceLine" id="cb7-12" data-line-number="12">t_cvode=<span class="kw">system.time</span>({</a>
-<a class="sourceLine" id="cb7-13" data-line-number="13">sol_cvode&lt;-<span class="st"> </span><span class="kw">cvode</span>(<span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">100</span>,<span class="fl">0.01</span>), u0<span class="fl">+1e-10</span>, f_sundials,<span class="dv">0</span>,<span class="dt">reltolerance =</span> <span class="fl">1e-4</span>,<span class="dt">abstolerance =</span> <span class="fl">1e-4</span>)</a>
-<a class="sourceLine" id="cb7-14" data-line-number="14">})</a>
-<a class="sourceLine" id="cb7-15" data-line-number="15"></a>
-<a class="sourceLine" id="cb7-16" data-line-number="16"><span class="co"># </span></a>
-<a class="sourceLine" id="cb7-17" data-line-number="17"><span class="kw">colnames</span>(sol_cvode)&lt;-<span class="kw">c</span>(<span class="st">&#39;time&#39;</span>,<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</a>
-<a class="sourceLine" id="cb7-18" data-line-number="18">sol_cvode_melted&lt;-sol_cvode<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb7-19" data-line-number="19"><span class="st">  </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb7-20" data-line-number="20"><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb7-21" data-line-number="21"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;sundialr&#39;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="trying-some-ode-solvers-in-r.html#cb9-1"></a>f_sundials&lt;-<span class="st"> </span><span class="cf">function</span>(t,u,p){</span>
+<span id="cb9-2"><a href="trying-some-ode-solvers-in-r.html#cb9-2"></a>  du &lt;-<span class="st"> </span><span class="kw">vector</span>(<span class="dt">mode =</span> <span class="st">&quot;numeric&quot;</span>, <span class="dt">length =</span> <span class="kw">length</span>(u))</span>
+<span id="cb9-3"><a href="trying-some-ode-solvers-in-r.html#cb9-3"></a>  </span>
+<span id="cb9-4"><a href="trying-some-ode-solvers-in-r.html#cb9-4"></a>  du[<span class="dv">1</span>] =<span class="st"> </span><span class="fl">10.0</span><span class="op">*</span>(u[<span class="dv">2</span>]<span class="op">-</span>u[<span class="dv">1</span>])</span>
+<span id="cb9-5"><a href="trying-some-ode-solvers-in-r.html#cb9-5"></a>  du[<span class="dv">2</span>] =<span class="st"> </span>u[<span class="dv">1</span>]<span class="op">*</span>(<span class="fl">28.0</span><span class="op">-</span>u[<span class="dv">3</span>]) <span class="op">-</span><span class="st"> </span>u[<span class="dv">2</span>]</span>
+<span id="cb9-6"><a href="trying-some-ode-solvers-in-r.html#cb9-6"></a>  du[<span class="dv">3</span>] =<span class="st"> </span>u[<span class="dv">1</span>]<span class="op">*</span>u[<span class="dv">2</span>] <span class="op">-</span><span class="st"> </span>(<span class="dv">8</span><span class="op">/</span><span class="dv">3</span>)<span class="op">*</span>u[<span class="dv">3</span>]</span>
+<span id="cb9-7"><a href="trying-some-ode-solvers-in-r.html#cb9-7"></a>  </span>
+<span id="cb9-8"><a href="trying-some-ode-solvers-in-r.html#cb9-8"></a>  du</span>
+<span id="cb9-9"><a href="trying-some-ode-solvers-in-r.html#cb9-9"></a>}</span>
+<span id="cb9-10"><a href="trying-some-ode-solvers-in-r.html#cb9-10"></a></span>
+<span id="cb9-11"><a href="trying-some-ode-solvers-in-r.html#cb9-11"></a><span class="co"># run</span></span>
+<span id="cb9-12"><a href="trying-some-ode-solvers-in-r.html#cb9-12"></a>t_cvode=<span class="kw">system.time</span>({</span>
+<span id="cb9-13"><a href="trying-some-ode-solvers-in-r.html#cb9-13"></a>sol_cvode&lt;-<span class="st"> </span><span class="kw">cvode</span>(<span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">100</span>,<span class="fl">0.01</span>), u0<span class="fl">+1e-5</span>, f_sundials,<span class="dv">0</span>,<span class="dt">reltolerance =</span> <span class="fl">1e-10</span>,<span class="dt">abstolerance =</span> <span class="fl">1e-10</span>)</span>
+<span id="cb9-14"><a href="trying-some-ode-solvers-in-r.html#cb9-14"></a>})</span>
+<span id="cb9-15"><a href="trying-some-ode-solvers-in-r.html#cb9-15"></a></span>
+<span id="cb9-16"><a href="trying-some-ode-solvers-in-r.html#cb9-16"></a><span class="co"># </span></span>
+<span id="cb9-17"><a href="trying-some-ode-solvers-in-r.html#cb9-17"></a><span class="kw">colnames</span>(sol_cvode)&lt;-<span class="kw">c</span>(<span class="st">&#39;time&#39;</span>,<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</span>
+<span id="cb9-18"><a href="trying-some-ode-solvers-in-r.html#cb9-18"></a>sol_cvode_melted&lt;-sol_cvode<span class="op">%&gt;%</span></span>
+<span id="cb9-19"><a href="trying-some-ode-solvers-in-r.html#cb9-19"></a><span class="st">  </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></span>
+<span id="cb9-20"><a href="trying-some-ode-solvers-in-r.html#cb9-20"></a><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></span>
+<span id="cb9-21"><a href="trying-some-ode-solvers-in-r.html#cb9-21"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;sundialr&#39;</span>)</span></code></pre></div>
 <p>and also define one with RCpp:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="co"># With RCpp</span></a>
-<a class="sourceLine" id="cb8-2" data-line-number="2">Rcpp<span class="op">::</span><span class="kw">sourceCpp</span>(<span class="dt">code =</span> <span class="st">&#39;</span></a>
-<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="st">#include &lt;Rcpp.h&gt;</span></a>
-<a class="sourceLine" id="cb8-4" data-line-number="4"><span class="st">using namespace Rcpp;</span></a>
-<a class="sourceLine" id="cb8-5" data-line-number="5"><span class="st">// [[Rcpp::export]]</span></a>
-<a class="sourceLine" id="cb8-6" data-line-number="6"><span class="st">NumericVector f_sundials_Rcpp (double t, NumericVector y, NumericVector p){</span></a>
-<a class="sourceLine" id="cb8-7" data-line-number="7"><span class="st">  // Initialize ydot filled with zeros</span></a>
-<a class="sourceLine" id="cb8-8" data-line-number="8"><span class="st">  NumericVector dydt(y.length());</span></a>
-<a class="sourceLine" id="cb8-9" data-line-number="9"><span class="st">  // </span></a>
-<a class="sourceLine" id="cb8-10" data-line-number="10"><span class="st">   dydt[0] = 10.0*(y[1]-y[0]);</span></a>
-<a class="sourceLine" id="cb8-11" data-line-number="11"><span class="st">  dydt[1] = y[0]*(28.0-y[2]) - y[1];</span></a>
-<a class="sourceLine" id="cb8-12" data-line-number="12"><span class="st">  dydt[2] = y[0]*y[1] - (8/3)*y[2];</span></a>
-<a class="sourceLine" id="cb8-13" data-line-number="13"><span class="st">  return dydt;</span></a>
-<a class="sourceLine" id="cb8-14" data-line-number="14"><span class="st">}&#39;</span>)</a>
-<a class="sourceLine" id="cb8-15" data-line-number="15"></a>
-<a class="sourceLine" id="cb8-16" data-line-number="16"><span class="co"># run</span></a>
-<a class="sourceLine" id="cb8-17" data-line-number="17">t_cvode_cpp=<span class="kw">system.time</span>({</a>
-<a class="sourceLine" id="cb8-18" data-line-number="18">  sol_cvode_cpp&lt;-<span class="st"> </span><span class="kw">cvode</span>(<span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">100</span>,<span class="fl">0.01</span>), u0<span class="fl">+1e-10</span>, f_sundials_Rcpp, <span class="ot">NaN</span>,<span class="dt">reltolerance =</span> <span class="fl">1e-4</span>,<span class="dt">abstolerance =</span> <span class="fl">1e-4</span>)</a>
-<a class="sourceLine" id="cb8-19" data-line-number="19">})</a>
-<a class="sourceLine" id="cb8-20" data-line-number="20"></a>
-<a class="sourceLine" id="cb8-21" data-line-number="21"><span class="co"># </span></a>
-<a class="sourceLine" id="cb8-22" data-line-number="22"><span class="kw">colnames</span>(sol_cvode_cpp)&lt;-<span class="kw">c</span>(<span class="st">&#39;time&#39;</span>,<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</a>
-<a class="sourceLine" id="cb8-23" data-line-number="23">sol_cvode_cpp_melted&lt;-sol_cvode_cpp<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb8-24" data-line-number="24"><span class="st">  </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb8-25" data-line-number="25"><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb8-26" data-line-number="26"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;sundialr_Rcpp&#39;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="trying-some-ode-solvers-in-r.html#cb10-1"></a><span class="co"># With RCpp</span></span>
+<span id="cb10-2"><a href="trying-some-ode-solvers-in-r.html#cb10-2"></a>Rcpp<span class="op">::</span><span class="kw">sourceCpp</span>(<span class="dt">code =</span> <span class="st">&#39;</span></span>
+<span id="cb10-3"><a href="trying-some-ode-solvers-in-r.html#cb10-3"></a><span class="st">#include &lt;Rcpp.h&gt;</span></span>
+<span id="cb10-4"><a href="trying-some-ode-solvers-in-r.html#cb10-4"></a><span class="st">using namespace Rcpp;</span></span>
+<span id="cb10-5"><a href="trying-some-ode-solvers-in-r.html#cb10-5"></a><span class="st">// [[Rcpp::export]]</span></span>
+<span id="cb10-6"><a href="trying-some-ode-solvers-in-r.html#cb10-6"></a><span class="st">NumericVector f_sundials_Rcpp (double t, NumericVector y, NumericVector p){</span></span>
+<span id="cb10-7"><a href="trying-some-ode-solvers-in-r.html#cb10-7"></a><span class="st">  // Initialize ydot filled with zeros</span></span>
+<span id="cb10-8"><a href="trying-some-ode-solvers-in-r.html#cb10-8"></a><span class="st">  NumericVector dydt(y.length());</span></span>
+<span id="cb10-9"><a href="trying-some-ode-solvers-in-r.html#cb10-9"></a><span class="st">  // </span></span>
+<span id="cb10-10"><a href="trying-some-ode-solvers-in-r.html#cb10-10"></a><span class="st">   dydt[0] = 10.0*(y[1]-y[0]);</span></span>
+<span id="cb10-11"><a href="trying-some-ode-solvers-in-r.html#cb10-11"></a><span class="st">  dydt[1] = y[0]*(28.0-y[2]) - y[1];</span></span>
+<span id="cb10-12"><a href="trying-some-ode-solvers-in-r.html#cb10-12"></a><span class="st">  dydt[2] = y[0]*y[1] - (8/3)*y[2];</span></span>
+<span id="cb10-13"><a href="trying-some-ode-solvers-in-r.html#cb10-13"></a><span class="st">  return dydt;</span></span>
+<span id="cb10-14"><a href="trying-some-ode-solvers-in-r.html#cb10-14"></a><span class="st">}&#39;</span>)</span>
+<span id="cb10-15"><a href="trying-some-ode-solvers-in-r.html#cb10-15"></a></span>
+<span id="cb10-16"><a href="trying-some-ode-solvers-in-r.html#cb10-16"></a><span class="co"># run</span></span>
+<span id="cb10-17"><a href="trying-some-ode-solvers-in-r.html#cb10-17"></a>t_cvode_cpp=<span class="kw">system.time</span>({</span>
+<span id="cb10-18"><a href="trying-some-ode-solvers-in-r.html#cb10-18"></a>  sol_cvode_cpp&lt;-<span class="st"> </span><span class="kw">cvode</span>(<span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">100</span>,<span class="fl">0.01</span>), u0<span class="fl">+1e-10</span>, f_sundials_Rcpp, <span class="ot">NaN</span>,<span class="dt">reltolerance =</span> <span class="fl">1e-10</span>,<span class="dt">abstolerance =</span> <span class="fl">1e-10</span>)</span>
+<span id="cb10-19"><a href="trying-some-ode-solvers-in-r.html#cb10-19"></a>})</span>
+<span id="cb10-20"><a href="trying-some-ode-solvers-in-r.html#cb10-20"></a></span>
+<span id="cb10-21"><a href="trying-some-ode-solvers-in-r.html#cb10-21"></a><span class="co"># </span></span>
+<span id="cb10-22"><a href="trying-some-ode-solvers-in-r.html#cb10-22"></a><span class="kw">colnames</span>(sol_cvode_cpp)&lt;-<span class="kw">c</span>(<span class="st">&#39;time&#39;</span>,<span class="st">&#39;u1&#39;</span>,<span class="st">&#39;u2&#39;</span>,<span class="st">&#39;u3&#39;</span>)</span>
+<span id="cb10-23"><a href="trying-some-ode-solvers-in-r.html#cb10-23"></a>sol_cvode_cpp_melted&lt;-sol_cvode_cpp<span class="op">%&gt;%</span></span>
+<span id="cb10-24"><a href="trying-some-ode-solvers-in-r.html#cb10-24"></a><span class="st">  </span><span class="kw">as_tibble</span>()<span class="op">%&gt;%</span></span>
+<span id="cb10-25"><a href="trying-some-ode-solvers-in-r.html#cb10-25"></a><span class="st">  </span><span class="kw">gather</span>(<span class="dt">key=</span>u,<span class="dt">value=</span><span class="st">&#39;value&#39;</span>,<span class="op">-</span>time)<span class="op">%&gt;%</span></span>
+<span id="cb10-26"><a href="trying-some-ode-solvers-in-r.html#cb10-26"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Method=</span><span class="st">&#39;sundialr_Rcpp&#39;</span>)</span></code></pre></div>
 </div>
 <div id="some-remarks" class="section level2">
 <h2><span class="header-section-number">2.4</span> Some remarks</h2>
 <p>Taking a quick look at the CPU times shows that the <code>diffeqr</code> and <code>odeintr</code> package are faster than the <code>sundialr</code> one.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">all_sols=<span class="kw">bind_rows</span>(sol_cvode_melted,sol_cvode_cpp_melted,</a>
-<a class="sourceLine" id="cb9-2" data-line-number="2">                   sol_odeintr_melted,sol_diffeqr_melted)</a>
-<a class="sourceLine" id="cb9-3" data-line-number="3"><span class="kw">ggplot</span>(all_sols,<span class="kw">aes</span>(<span class="dt">x=</span>time,<span class="dt">y=</span>value))<span class="op">+</span></a>
-<a class="sourceLine" id="cb9-4" data-line-number="4"><span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(<span class="dt">col=</span>u))<span class="op">+</span></a>
-<a class="sourceLine" id="cb9-5" data-line-number="5"><span class="st">  </span><span class="kw">scale_color_brewer</span>(<span class="dt">palette=</span><span class="st">&#39;Set1&#39;</span>)<span class="op">+</span></a>
-<a class="sourceLine" id="cb9-6" data-line-number="6"><span class="st">  </span><span class="kw">theme_minimal</span>()<span class="op">+</span></a>
-<a class="sourceLine" id="cb9-7" data-line-number="7"><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>Method)</a></code></pre></div>
-<p><img src="_main_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="co"># Time </span></a>
-<a class="sourceLine" id="cb10-2" data-line-number="2">time_df=<span class="kw">bind_rows</span>(t_cvode_cpp,t_cvode,t_diffeqr,t_odeintr);</a>
-<a class="sourceLine" id="cb10-3" data-line-number="3">time_df&lt;-time_df<span class="op">%&gt;%</span><span class="kw">mutate</span>(<span class="dt">package=</span><span class="kw">c</span>(<span class="st">&#39;sundialr_Cpp&#39;</span>,</a>
-<a class="sourceLine" id="cb10-4" data-line-number="4">                                    <span class="st">&#39;sundialr&#39;</span>,</a>
-<a class="sourceLine" id="cb10-5" data-line-number="5">                                    <span class="st">&#39;diffeqr&#39;</span>,</a>
-<a class="sourceLine" id="cb10-6" data-line-number="6">                                    <span class="st">&#39;odeintr&#39;</span>))</a>
-<a class="sourceLine" id="cb10-7" data-line-number="7"></a>
-<a class="sourceLine" id="cb10-8" data-line-number="8"><span class="kw">kable</span>(time_df)</a></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="trying-some-ode-solvers-in-r.html#cb11-1"></a>all_sols=<span class="kw">bind_rows</span>(sol_cvode_melted,sol_cvode_cpp_melted,</span>
+<span id="cb11-2"><a href="trying-some-ode-solvers-in-r.html#cb11-2"></a>                   sol_odeintr_melted,sol_diffeqr_melted)</span>
+<span id="cb11-3"><a href="trying-some-ode-solvers-in-r.html#cb11-3"></a><span class="kw">ggplot</span>(all_sols,<span class="kw">aes</span>(<span class="dt">x=</span>time,<span class="dt">y=</span>value))<span class="op">+</span></span>
+<span id="cb11-4"><a href="trying-some-ode-solvers-in-r.html#cb11-4"></a><span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(<span class="dt">col=</span>u))<span class="op">+</span></span>
+<span id="cb11-5"><a href="trying-some-ode-solvers-in-r.html#cb11-5"></a><span class="st">  </span><span class="kw">scale_color_brewer</span>(<span class="dt">palette=</span><span class="st">&#39;Set1&#39;</span>)<span class="op">+</span></span>
+<span id="cb11-6"><a href="trying-some-ode-solvers-in-r.html#cb11-6"></a><span class="st">  </span><span class="kw">theme_minimal</span>()<span class="op">+</span></span>
+<span id="cb11-7"><a href="trying-some-ode-solvers-in-r.html#cb11-7"></a><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>Method)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="trying-some-ode-solvers-in-r.html#cb12-1"></a><span class="co"># Time </span></span>
+<span id="cb12-2"><a href="trying-some-ode-solvers-in-r.html#cb12-2"></a>time_df=<span class="kw">bind_rows</span>(t_cvode_cpp,t_cvode,t_diffeqr,t_odeintr);</span>
+<span id="cb12-3"><a href="trying-some-ode-solvers-in-r.html#cb12-3"></a>time_df&lt;-time_df<span class="op">%&gt;%</span><span class="kw">mutate</span>(<span class="dt">package=</span><span class="kw">c</span>(<span class="st">&#39;sundialr_Cpp&#39;</span>,</span>
+<span id="cb12-4"><a href="trying-some-ode-solvers-in-r.html#cb12-4"></a>                                    <span class="st">&#39;sundialr&#39;</span>,</span>
+<span id="cb12-5"><a href="trying-some-ode-solvers-in-r.html#cb12-5"></a>                                    <span class="st">&#39;diffeqr&#39;</span>,</span>
+<span id="cb12-6"><a href="trying-some-ode-solvers-in-r.html#cb12-6"></a>                                    <span class="st">&#39;odeintr&#39;</span>))</span>
+<span id="cb12-7"><a href="trying-some-ode-solvers-in-r.html#cb12-7"></a></span>
+<span id="cb12-8"><a href="trying-some-ode-solvers-in-r.html#cb12-8"></a><span class="kw">kable</span>(time_df)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -295,35 +305,35 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </thead>
 <tbody>
 <tr class="odd">
-<td align="right">0.160</td>
-<td align="right">0.005</td>
-<td align="right">0.166</td>
-<td align="right">0.000</td>
-<td align="right">0.000</td>
+<td align="right">0.688</td>
+<td align="right">0.011</td>
+<td align="right">0.699</td>
+<td align="right">0</td>
+<td align="right">0</td>
 <td align="left">sundialr_Cpp</td>
 </tr>
 <tr class="even">
-<td align="right">0.149</td>
-<td align="right">0.007</td>
-<td align="right">0.161</td>
-<td align="right">0.000</td>
-<td align="right">0.000</td>
+<td align="right">0.864</td>
+<td align="right">0.009</td>
+<td align="right">0.873</td>
+<td align="right">0</td>
+<td align="right">0</td>
 <td align="left">sundialr</td>
 </tr>
 <tr class="odd">
-<td align="right">0.008</td>
-<td align="right">0.012</td>
-<td align="right">0.152</td>
-<td align="right">0.011</td>
-<td align="right">0.076</td>
+<td align="right">0.004</td>
+<td align="right">0.000</td>
+<td align="right">0.005</td>
+<td align="right">0</td>
+<td align="right">0</td>
 <td align="left">diffeqr</td>
 </tr>
 <tr class="even">
+<td align="right">0.015</td>
+<td align="right">0.002</td>
 <td align="right">0.017</td>
-<td align="right">0.001</td>
-<td align="right">0.018</td>
-<td align="right">0.000</td>
-<td align="right">0.000</td>
+<td align="right">0</td>
+<td align="right">0</td>
 <td align="left">odeintr</td>
 </tr>
 </tbody>
@@ -337,8 +347,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           </div>
         </div>
       </div>
-<a href="index.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-
+<a href="index.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="wip.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
